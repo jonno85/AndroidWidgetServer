@@ -90,6 +90,16 @@ public class BoundService extends Service {
 		return apiEndpoint;
 	}
 
+	@Override
+	public void onDestroy() {
+		timer.purge();
+		timer = null;
+		apiEndpoint = null;
+		super.onDestroy();
+	}
+
+
+
 	private TimerTask getNewTimerTask(){
 		return new TimerTask() {
 			
