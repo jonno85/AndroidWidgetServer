@@ -22,11 +22,7 @@ public class BoundService extends Service {
 	boolean run = true;
 	private Timer timer = new Timer("scheduled generator");
 	private GeneratedValueResult result = new GeneratedValueResult();
-	//private ScheduledExecutorService ex;
-	
-	//to synchronized operation on result variable
-	private final Object valueResultLock = new Object();
-	
+
 	private List<IGeneratedValueListener> listeners = 
 					new ArrayList<IGeneratedValueListener>();
 
@@ -38,7 +34,6 @@ public class BoundService extends Service {
 				BoundService.this.run = value;
 				timer.purge();
 				if(value){
-					Log.e(TAG, "boot");
 					startExcutor();
 				}
 			}
@@ -55,7 +50,6 @@ public class BoundService extends Service {
 		@Override
 		public void putSeed(int seed) throws RemoteException {
 			BoundService.this.seed = seed;
-			//Log.e("TIMER", "CHIAMATO PUTSEED");
 			timer.purge();
 			startExcutor();
 		}
@@ -67,9 +61,7 @@ public class BoundService extends Service {
 		
 		@Override
 		public GeneratedValueResult getCurrentResult() throws RemoteException {
-			synchronized(valueResultLock){
-				return result;
-			}
+			return result;
 		}
 		
 		@Override
@@ -79,7 +71,7 @@ public class BoundService extends Service {
 				listeners.add(listener);
 			}
 		}
-		
+
 		private void startExcutor(){
 			timer.schedule(getNewTimerTask(), 0);
 		}
@@ -97,8 +89,6 @@ public class BoundService extends Service {
 		apiEndpoint = null;
 		super.onDestroy();
 	}
-
-
 
 	private TimerTask getNewTimerTask(){
 		return new TimerTask() {
@@ -122,7 +112,7 @@ public class BoundService extends Service {
 					synchronized(listeners){
 						for (IGeneratedValueListener listener : listeners) {
 							try {
-								listener.handleGeneratedValue();
+								listener.handleGeneratedValue(result.getValue());
 							} catch (RemoteException e) {
 								Log.w(TAG, "Failed to notify listener " + listener, e);
 							}
